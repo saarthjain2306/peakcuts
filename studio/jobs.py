@@ -34,6 +34,8 @@ class _FairQueue:
         after the last one started, so its weight is already showing in the measurements."""
         if self.running == 0:
             return True
+        if config.env("PEAKCUT_NO_QUEUE_DELAY") == "1":
+            return self.running < config.JOB_WORKERS and not load.busy()
         return self.running < config.JOB_WORKERS and time.time() - self.last_start > 6 and not load.busy()
 
     def done(self):
@@ -99,6 +101,43 @@ class _FairQueue:
                 order, depth = nxt, depth + 1
             self._pos = (time.time(), out)
             return out
+
+    def prioritize(self, job_id: str, user=None) -> bool:
+        """Move this job to the front of the queue so it renders first."""
+        with self.cv:
+            if user and user in self.lines:
+                for i, it in enumerate(self.lines[user]):
+                    if len(it) > 1 and it[1] == job_id:
+                        item = self.lines[user][i]
+                        del self.lines[user][i]
+                        self.lines[user].appendleft(item)
+                        if user in self.turn:
+                            self.turn.remove(user)
+                        self.turn.appendleft(user)
+                        self.epoch += 1
+                        self.cv.notify_all()
+                        return True
+            for u, q in self.lines.items():
+                for i, it in enumerate(q):
+                    if len(it) > 1 and it[1] == job_id:
+                        item = q[i]
+                        del q[i]
+                        q.appendleft(item)
+                        if u in self.turn:
+                            self.turn.remove(u)
+                        self.turn.appendleft(u)
+                        self.epoch += 1
+                        self.cv.notify_all()
+                        return True
+            for i, it in enumerate(self.quick):
+                if len(it) > 1 and it[1] == job_id:
+                    item = self.quick[i]
+                    del self.quick[i]
+                    self.quick.appendleft(item)
+                    self.epoch += 1
+                    self.cv.notify_all()
+                    return True
+            return False
 
 
 _q = _FairQueue()
@@ -308,6 +347,11 @@ def queue_epoch() -> int:
 
 def running_now() -> int:
     return _q.running
+
+
+def prioritize_job(jid: str) -> bool:
+    """Move this job to the top of the queue so it is rendered first."""
+    return _q.prioritize(jid, ctx.uid())
 
 
 def create(source: dict, options: dict, enqueue=True, creator=None, kind="video") -> dict:

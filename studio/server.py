@@ -38,7 +38,7 @@ def _quiet(fn):
 
 app = FastAPI(title="PeakCut", docs_url=None, redoc_url=None, openapi_url=None)
 WEB = config.ROOT / "web"
-OPEN = ("/api/auth/", "/pub/", "/api/public", "/auth/google/", "/auth/verify", "/brand/", "/assets/", "/healthz", "/favicon.ico", "/robots.txt", "/sitemap.xml")
+OPEN = ("/api/auth/", "/pub/", "/api/public", "/auth/google/", "/auth/verify", "/brand/", "/assets/", "/healthz", "/favicon.ico", "/robots.txt", "/sitemap.xml", "/mobile")
 PAGES = {"/": "landing.html", "/login": "auth.html", "/signup": "auth.html", "/reset": "reset.html",
          "/privacy": "legal.html", "/terms": "legal.html", "/acceptable-use": "legal.html"}
 VIDEO_TYPES = {".mp4", ".mov", ".mkv", ".webm", ".m4v", ".ts", ".flv"}
@@ -435,6 +435,13 @@ def app_page(rest: str = ""):
     return _page("index.html")
 
 
+@app.get("/mobile")
+@app.get("/mobile/{rest:path}")
+def mobile_page(rest: str = ""):
+    """Mobile-first single-button controller for phone and independent cloud/web clipping."""
+    return _page("mobile.html")
+
+
 @app.get("/admin")
 @app.get("/admin/{rest:path}")
 def admin_page(request: Request, rest: str = ""):
@@ -723,6 +730,31 @@ def list_jobs():
 @app.get("/api/jobs/{jid}")
 def get_job(jid: str):
     return jobs.public(_job_or_404(jid))
+
+
+@app.post("/api/jobs/{jid}/prioritize")
+def prioritize_job(jid: str):
+    job = _job_or_404(jid)
+    ok = jobs.prioritize_job(jid)
+    ctx.bump()
+    return {"ok": ok, "job": jobs.public(job)}
+
+
+@app.get("/api/queue/config")
+def get_queue_config():
+    return {"no_queue_delay": os.environ.get("PEAKCUT_NO_QUEUE_DELAY") == "1", "workers": config.JOB_WORKERS}
+
+
+@app.post("/api/queue/config")
+def set_queue_config(body: dict = Body(...)):
+    if "no_queue_delay" in body:
+        os.environ["PEAKCUT_NO_QUEUE_DELAY"] = "1" if body["no_queue_delay"] else "0"
+    if "workers" in body:
+        try:
+            config.JOB_WORKERS = max(1, min(16, int(body["workers"])))
+        except (ValueError, TypeError):
+            pass
+    return get_queue_config()
 
 
 @app.get("/api/preview")
