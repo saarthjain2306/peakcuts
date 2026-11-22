@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d14">
+  <title>PeakCut AI · OpusClip Auto-Edit Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090b10;
+      --surface: #11141f;
+      --surface-hover: #171b2a;
+      --card: #141824;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(139, 92, 246, 0.6);
+      --primary: #8b5cf6;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --accent-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --success: #10b981;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --gold: #fbbf24;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      overflow-x: hidden;
+      padding-bottom: 75px;
+    }
+
+    /* Ambient Glow Background */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 400px;
+      background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.15) 0%, rgba(217, 70, 239, 0.05) 50%, transparent 80%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: rgba(15, 18, 28, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 20px;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-logo-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--primary-gradient);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+    }
+    .brand-title {
+      font-family: 'Space Grotesk', var(--font);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* OPUSCLIP HERO CREATOR CARD */
+    .opus-hero-card {
+      background: radial-gradient(circle at 50% -20%, rgba(139, 92, 246, 0.18) 0%, rgba(20, 24, 36, 0.95) 70%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 26px 22px;
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(139, 92, 246, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .hero-title-wrap {
+      text-align: center;
+    }
+    .hero-heading {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .hero-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    /* Platform Tabs */
+    .platform-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .platform-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .platform-pill.active {
+      background: rgba(139, 92, 246, 0.18);
+      color: #fff;
+      border-color: rgba(139, 92, 246, 0.5);
+    }
+    .platform-pill svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* Input Box */
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .url-input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .url-input {
+      width: 100%;
+      background: rgba(9, 11, 16, 0.8);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 16px 110px 16px 18px;
+      outline: none;
+      transition: all 0.25s;
+    }
+    .url-input:focus {
+      border-color: #a855f7;
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2), 0 0 20px rgba(168, 85, 247, 0.15);
+      background: rgba(13, 16, 24, 0.95);
+    }
+    .paste-btn {
+      position: absolute;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .paste-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+    /* Primary CTA Button (OpusClip Style) */
+    .btn-opus-generate {
+      width: 100%;
+      background: var(--primary-gradient);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 800;
+      padding: 16px 24px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transition: all 0.2s;
+    }
+    .btn-opus-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(139, 92, 246, 0.45);
+    }
+    .btn-opus-generate:active { transform: translateY(0); }
+    .btn-opus-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Auto-Edit Options Panel */
+    .options-panel {
+      background: rgba(14, 18, 27, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .options-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .options-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .options-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Duration Selector */
+    .opt-group-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .pill-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 600px) {
+      .pill-selector { grid-template-columns: repeat(2, 1fr); }
+    }
+    .pill-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 10px 8px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-item.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: #a855f7;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+    }
+    .pill-item-title { font-size: 0.82rem; font-weight: 700; color: #fff; }
+    .pill-item-desc { font-size: 0.68rem; color: var(--text-dim); }
+
+    /* Caption Styles Carousel */
+    .style-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 600px) {
+      .style-cards { grid-template-columns: 1fr; }
+    }
+    .style-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .style-card.active {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: #a855f7;
+      box-shadow: 0 0 16px rgba(168, 85, 247, 0.2);
+    }
+    .style-preview-box {
+      height: 38px;
+      background: #000;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.78rem;
+    }
+    .preview-bounce { color: #fff; }
+    .preview-bounce span { color: #facc15; text-shadow: 0 0 8px rgba(250, 204, 21, 0.6); }
+    .preview-hype { color: #38bdf8; text-transform: uppercase; }
+    .preview-clean { color: #e2e8f0; font-weight: 600; font-size: 0.72rem; }
+    .style-title { font-size: 0.8rem; font-weight: 700; color: #fff; }
+
+    /* CONCURRENCY & SPEED BAR */
+    .speed-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .speed-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .speed-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .speed-title { font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .speed-desc { font-size: 0.72rem; color: var(--text-muted); }
+    .speed-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* PROJECTS & VIDEO QUEUE */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Project Cards */
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      transition: border-color 0.2s;
+    }
+    .project-card.active-render {
+      border-color: rgba(139, 92, 246, 0.5);
+      box-shadow: 0 4px 24px rgba(139, 92, 246, 0.15);
+    }
+
+    .project-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .project-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .project-meta {
+      font-size: 0.74rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Priority / Rush Button */
+    .btn-prioritize {
+      background: linear-gradient(135deg, #f59e0b 0%, #ec4899 100%);
+      color: #fff;
+      border: none;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-prioritize:active { transform: scale(0.96); }
+
+    /* Status Pills */
+    .pill-status {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pill-queued { background: rgba(245, 158, 11, 0.15); color: var(--gold); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .pill-running { background: rgba(139, 92, 246, 0.18); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4); }
+    .pill-done { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Clips Layout (OpusClip Vertical Cards) */
+    .clips-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 6px;
+    }
+    @media (max-width: 480px) {
+      .clips-container { grid-template-columns: repeat(2, 1fr); }
+    }
+    .opus-clip-card {
+      background: #0d1017;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .opus-clip-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+    .clip-media-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9/16;
+      background: #141724;
+      overflow: hidden;
+    }
+    .clip-media-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    /* Viral Score Badge (Signature OpusClip Element) */
+    .viral-score-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(15, 20, 30, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .viral-score-badge.high { border-color: rgba(16, 185, 129, 0.5); color: #34d399; }
+    .viral-score-badge.fire { border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; }
+
+    .clip-content {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      justify-content: space-between;
+    }
+    .clip-headline {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .clip-download-btn {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .clip-download-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Video Player Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: #141724;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 380px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+    .modal-video-wrap {
+      width: 100%;
+      aspect-ratio: 9/16;
+      background: #000;
+    }
+    .modal-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Cloud Link Pill */
+    .cloud-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.7) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .phone-tag {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    /* Bottom Mobile Navigation */
+    .mobile-tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 18, 28, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+    .tab-bar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .tab-bar-item.active { color: #c084fc; }
+    .tab-bar-icon { font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-inner">
+      <div class="brand-wrap">
+        <div class="brand-logo-icon">⚡</div>
+        <div class="brand-title">PeakCut</div>
+        <span class="brand-badge">Opus Engine</span>
+      </div>
+      <div class="header-badges">
+        <div class="status-chip">
+          <span class="status-dot" id="net-dot"></span>
+          <span id="net-label">Cloud Online</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- OPUSCLIP HERO CREATION CARD -->
+    <div class="opus-hero-card">
+      <div class="hero-title-wrap">
+        <h1 class="hero-heading">Turn long videos into viral shorts</h1>
+        <p class="hero-subtitle">1-click AI curation, bouncy viral captions, 9:16 reframing</p>
+      </div>
+
+      <!-- Platform Pills -->
+      <div class="platform-tabs">
+        <div class="platform-pill active" onclick="setPlatform('YouTube')">
+          <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          YouTube
+        </div>
+        <div class="platform-pill" onclick="setPlatform('Twitch')">
+          <svg viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+          Twitch
+        </div>
+        <div class="platform-pill" onclick="setPlatform('Kick')">
+          <svg viewBox="0 0 24 24"><path d="M1.333 0v24h8.333v-6.667h1.667L16 24h6.667l-6.667-8.667L22.667 0h-6.667L11.333 7.333H9.667V0z"/></svg>
+          Kick
+        </div>
+        <div class="platform-pill" onclick="triggerFileUpload()">
+          <span>📁</span> Upload MP4
+        </div>
+      </div>
+
+      <!-- Main Input Box -->
+      <div class="input-wrapper">
+        <div class="url-input-container">
+          <input type="text" id="video-url" class="url-input" placeholder="Drop video link (e.g. https://youtu.be/...)" autocomplete="off">
+          <button class="paste-btn" onclick="pasteClipboard()">Paste</button>
+        </div>
+
+        <button class="btn-opus-generate" id="btn-generate" onclick="submitVideo()">
+          <span>✨</span>
+          <span>Get clips in 1 click</span>
+        </button>
+      </div>
+
+      <!-- Expandable Auto-Edit Preferences -->
+      <div class="options-panel">
+        <div class="options-header" onclick="toggleOptions()">
+          <div class="options-title">
+            <span>⚙️ Auto-Edit Preferences</span>
+          </div>
+          <span id="opt-arrow" style="font-size:0.8rem; color:var(--text-muted);">▼</span>
+        </div>
+
+        <div class="options-body" id="options-body">
+          <!-- Duration selector -->
+          <div>
+            <div class="opt-group-label">Clip Duration</div>
+            <div class="pill-selector">
+              <div class="pill-item" onclick="selectDuration(15, this)">
+                <div class="pill-item-title">&lt; 30s</div>
+                <div class="pill-item-desc">Fast hook</div>
+              </div>
+              <div class="pill-item active" onclick="selectDuration(30, this)">
+                <div class="pill-item-title">30s - 60s</div>
+                <div class="pill-item-desc">Shorts/TikTok</div>
+              </div>
+              <div class="pill-item" onclick="selectDuration(60, this)">
+                <div class="pill-item-title">60s - 90s</div>
+                <div class="pill-item-desc">Story mode</div>
+              </div>
+              <div class="pill-item" onclick="selectDuration(45, this)">
+                <div class="pill-item-title">Auto</div>
+                <div class="pill-item-desc">AI optimal</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Caption Style Carousel -->
+          <div>
+            <div class="opt-group-label">Caption Style Preset</div>
+            <div class="style-cards">
+              <div class="style-card active" onclick="selectStyle('bounce', this)">
+                <div class="style-preview-box">
+                  <div class="preview-bounce">HOW I <span>MADE</span> IT</div>
+                </div>
+                <div class="style-title">Karaoke Bounce</div>
+              </div>
+              <div class="style-card" onclick="selectStyle('hype', this)">
+                <div class="style-preview-box">
+                  <div class="preview-hype">VIRAL ENERGY</div>
+                </div>
+                <div class="style-title">Electric Hype</div>
+              </div>
+              <div class="style-card" onclick="selectStyle('clean', this)">
+                <div class="style-preview-box">
+                  <div class="preview-clean">Minimalist clean</div>
+                </div>
+                <div class="style-title">Modern Subtitle</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEED & CONCURRENCY CONTROLLER -->
+    <div class="speed-bar">
+      <div class="speed-info">
+        <div class="speed-icon">⚡</div>
+        <div>
+          <div class="speed-title">Multi-Video Parallel Rendering</div>
+          <div class="speed-desc">No queue waiting · 3x hardware acceleration</div>
+        </div>
+      </div>
+      <div class="speed-toggle-wrap">
+        <select id="workers-select" onchange="setWorkers(this.value)" style="background:#090b10; border:1px solid var(--border); color:#fff; font-size:0.78rem; font-weight:700; padding:6px 10px; border-radius:var(--radius-sm);">
+          <option value="1">1 Worker</option>
+          <option value="2" selected>2 Workers (Fast)</option>
+          <option value="4">4 Workers (Turbo)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PROJECTS & CLIPS SECTION -->
+    <div>
+      <div class="section-header">
+        <div class="section-title">
+          <span>📁 Your Video Projects</span>
+        </div>
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
+          <button class="tab-btn" onclick="setFilter('running', this)">Active</button>
+          <button class="tab-btn" onclick="setFilter('done', this)">Clips Ready</button>
+        </div>
+      </div>
+
+      <div id="projects-feed" style="display:flex; flex-direction:column; gap:16px;">
+        <div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.88rem;">
+          Loading your projects...
+        </div>
+      </div>
+    </div>
+
+    <!-- PHONE & CLOUD CONNECTOR -->
+    <div class="cloud-banner">
+      <div>
+        <div style="font-size:0.86rem; font-weight:700; color:#fff;">📱 Phone Mobile Access</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Open this URL on your phone browser on Wi-Fi:</div>
+      </div>
+      <span class="phone-tag" id="phone-url-display">http://10.184.22.157:8765/mobile</span>
+    </div>
+
+  </main>
+
+  <!-- MODAL VIDEO PREVIEW -->
+  <div class="modal-overlay" id="video-modal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span style="font-size:0.88rem; font-weight:700;" id="modal-title">Clip Preview</span>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-video-wrap">
+        <video id="player" class="modal-video" controls playsinline autoplay></video>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM MOBILE BAR -->
+  <div class="mobile-tab-bar">
+    <div class="tab-bar-item active" onclick="scrollToTop()">
+      <span class="tab-bar-icon">⚡</span>
+      <span>Create</span>
+    </div>
+    <div class="tab-bar-item" onclick="scrollToFeed()">
+      <span class="tab-bar-icon">📁</span>
+      <span>Projects</span>
+    </div>
+    <div class="tab-bar-item" onclick="openStudioFull()">
+      <span class="tab-bar-icon">🖥️</span>
+      <span>Full Studio</span>
+    </div>
+  </div>
+
+  <script>
+    let customBackend = localStorage.getItem("peakcut_backend");
+    const isStaticHost = window.location.protocol === "file:" || window.location.hostname.endsWith("github.io") || (window.location.port !== "8765" && !window.location.origin.includes("127.0.0.1"));
+    const BACKEND = isStaticHost ? (customBackend || "http://10.184.22.157:8765") : window.location.origin;
+    let selectedStyle = 'bounce';
+    let selectedDuration = 30;
+    let currentFilter = 'all';
+    let allJobs = [];
+
+    // Allow user to set backend server if running from GitHub Pages or static host
+    function promptBackend() {
+      const cur = localStorage.getItem("peakcut_backend") || "http://10.184.22.157:8765";
+      const u = prompt("Enter your PeakCut Server URL (LAN IP or Cloud URL):", cur);
+      if (u) {
+        localStorage.setItem("peakcut_backend", u.trim().replace(/\/$/, ""));
+        window.location.reload();
+      }
+    }
+
+    // Auto-fill phone Wi-Fi link
+    try {
+      const host = window.location.hostname || "10.184.22.157";
+      const port = window.location.port || "8765";
+      document.getElementById("phone-url-display").innerText = `http://${host}:${port}/mobile`;
+    } catch(e) {}
+
+    async function api(path, opts = {}) {
+      try {
+        const res = await fetch(`${BACKEND}${path}`, {
+          ...opts,
+          headers: { "Content-Type": "application/json", ...(opts.headers || {}) }
+        });
+        document.getElementById("net-dot").style.background = "var(--success)";
+        document.getElementById("net-label").innerText = "Cloud Online";
+        return await res.json();
+      } catch (err) {
+        document.getElementById("net-dot").style.background = "var(--danger)";
+        document.getElementById("net-label").innerText = "Connecting...";
+        throw err;
+      }
+    }
+
+    function selectDuration(dur, el) {
+      selectedDuration = dur;
+      document.querySelectorAll('.pill-item').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function selectStyle(st, el) {
+      selectedStyle = st;
+      document.querySelectorAll('.style-card').forEach(s => s.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function toggleOptions() {
+      const b = document.getElementById("options-body");
+      const a = document.getElementById("opt-arrow");
+      if (b.style.display === "none") {
+        b.style.display = "flex";
+        a.innerText = "▼";
+      } else {
+        b.style.display = "none";
+        a.innerText = "▶";
+      }
+    }
+
+    async function pasteClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) document.getElementById("video-url").value = text;
+      } catch(e) {
+        alert("Please paste the link manually into the box.");
+      }
+    }
+
+    function setPlatform(name) {
+      document.querySelectorAll('.platform-pill').forEach(p => p.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      const input = document.getElementById("video-url");
+      input.placeholder = `Paste ${name} video URL here...`;
+      input.focus();
+    }
+
+    function triggerFileUpload() {
+      window.open(`${BACKEND}/app`, '_blank');
+    }
+
+    async function submitVideo() {
+      const urlInput = document.getElementById("video-url");
+      const url = urlInput.value.trim();
+      if (!url) {
+        alert("Please paste a video link first!");
+        urlInput.focus();
+        return;
+      }
+
+      const btn = document.getElementById("btn-generate");
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳</span> <span>Generating Clips...</span>`;
+
+      try {
+        await api("/api/jobs", {
+          method: "POST",
+          body: JSON.stringify({
+            url: url,
+            options: {
+              style: selectedStyle,
+              max_len: selectedDuration,
+              min_len: Math.max(10, selectedDuration - 20),
+              captions: true
+            }
+          })
+        });
+        urlInput.value = "";
+        btn.innerHTML = `<span>✨</span> <span>Clips Queued!</span>`;
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = `<span>✨</span> <span>Get clips in 1 click</span>`;
+        }, 1200);
+        fetchJobs();
+      } catch(err) {
+        alert("Error creating clip job: " + (err.message || err));
+        btn.disabled = false;
+        btn.innerHTML = `<span>✨</span> <span>Get clips in 1 click</span>`;
+      }
+    }
+
+    async function prioritizeJob(jid) {
+      try {
+        await api(`/api/jobs/${jid}/prioritize`, { method: "POST" });
+        fetchJobs();
+      } catch (e) {
+        alert("Could not prioritize: " + e.message);
+      }
+    }
+
+    async function setWorkers(num) {
+      try {
+        await api("/api/queue/config", {
+          method: "POST",
+          body: JSON.stringify({ workers: parseInt(num, 10), no_queue_delay: true })
+        });
+      } catch(e) {}
+    }
+
+    async function fetchJobs() {
+      try {
+        const jobs = await api("/api/jobs");
+        allJobs = jobs || [];
+        renderFeed();
+      } catch(e) {}
+    }
+
+    function setFilter(filt, el) {
+      currentFilter = filt;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderFeed();
+    }
+
+    function renderFeed() {
+      const feed = document.getElementById("projects-feed");
+      let filtered = allJobs;
+      if (currentFilter === 'running') {
+        filtered = allJobs.filter(j => j.status === 'running' || j.status === 'queued');
+      } else if (currentFilter === 'done') {
+        filtered = allJobs.filter(j => j.status === 'done');
+      }
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `
+          <div style="text-align:center; padding:36px 20px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-md);">
+            <div style="font-size:2rem; margin-bottom:8px;">🎬</div>
+            <div style="font-size:0.95rem; font-weight:700; color:#fff;">No videos in this view</div>
+            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:4px;">Paste a video link above to get your first clips!</div>
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = filtered.map(j => {
+        const isQueued = j.status === "queued";
+        const isRunning = j.status === "running";
+        const clips = j.clips || [];
+
+        return `
+          <div class="project-card ${isRunning ? 'active-render' : ''}">
+            <div class="project-top">
+              <div style="flex:1;">
+                <div class="project-name">${escapeHtml(j.name || j.url || "Video " + j.id)}</div>
+                <div class="project-meta">
+                  <span>${j.stage ? j.stage : 'Processed'}</span>
+                  <span>·</span>
+                  <span>${clips.length} clip${clips.length === 1 ? '' : 's'}</span>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="pill-status pill-${j.status}">${j.status}</span>
+                ${isQueued ? `
+                  <button class="btn-prioritize" onclick="prioritizeJob('${j.id}')">
+                    <span>⚡</span> <span>Clip First</span>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            ${clips.length > 0 ? `
+              <div class="clips-container">
+                ${clips.map((c, i) => {
+                  // OpusClip style Virality Score generator (deterministic based on clip)
+                  const score = 88 + (parseInt(c.id.slice(-2), 16) % 11);
+                  const isFire = score >= 95;
+                  const thumbUrl = c.cover ? `${BACKEND}/media/${j.id}/${c.cover}` : '';
+                  const videoUrl = c.file ? `${BACKEND}/media/${j.id}/${c.file}` : '';
+
+                  return `
+                    <div class="opus-clip-card" onclick="openModal('${escapeHtml(c.hook || c.title || 'Clip')}', '${videoUrl}')">
+                      <div class="clip-media-wrap">
+                        ${thumbUrl ? `<img src="${thumbUrl}" class="clip-media-thumb" loading="lazy" onerror="this.style.display='none'">` : ''}
+                        <div class="viral-score-badge ${isFire ? 'fire' : 'high'}">
+                          <span>${isFire ? '🔥' : '⭐'}</span>
+                          <span>Score ${score}</span>
+                        </div>
+                      </div>
+                      <div class="clip-content">
+                        <div class="clip-headline">${escapeHtml(c.hook || c.title || 'Viral Hook')}</div>
+                        <a href="${videoUrl}" download onclick="event.stopPropagation()" class="clip-download-btn">
+                          <span>⬇</span> <span>Download 1080p</span>
+                        </a>
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openModal(title, url) {
+      if (!url) return;
+      document.getElementById("modal-title").innerText = title;
+      const player = document.getElementById("player");
+      player.src = url;
+      document.getElementById("video-modal").style.display = "flex";
+      player.play();
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("video-modal");
+      modal.style.display = "none";
+      const player = document.getElementById("player");
+      player.pause();
+      player.src = "";
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToFeed() {
+      document.getElementById("projects-feed").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openStudioFull() {
+      window.open(`${BACKEND}/app`, '_blank');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/[&<>'"]/g, t => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[t] || t));
+    }
+
+    fetchJobs();
+    setInterval(fetchJobs, 3000);
+  </script>
+</body>
+</html>

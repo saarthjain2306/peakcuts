@@ -938,11 +938,23 @@
   </div>
 
   <script>
-    const BACKEND = window.location.origin;
+    let customBackend = localStorage.getItem("peakcut_backend");
+    const isStaticHost = window.location.protocol === "file:" || window.location.hostname.endsWith("github.io") || (window.location.port !== "8765" && !window.location.origin.includes("127.0.0.1"));
+    const BACKEND = isStaticHost ? (customBackend || "http://10.184.22.157:8765") : window.location.origin;
     let selectedStyle = 'bounce';
     let selectedDuration = 30;
     let currentFilter = 'all';
     let allJobs = [];
+
+    // Allow user to set backend server if running from GitHub Pages or static host
+    function promptBackend() {
+      const cur = localStorage.getItem("peakcut_backend") || "http://10.184.22.157:8765";
+      const u = prompt("Enter your PeakCut Server URL (LAN IP or Cloud URL):", cur);
+      if (u) {
+        localStorage.setItem("peakcut_backend", u.trim().replace(/\/$/, ""));
+        window.location.reload();
+      }
+    }
 
     // Auto-fill phone Wi-Fi link
     try {
